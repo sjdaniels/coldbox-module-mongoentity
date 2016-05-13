@@ -1,0 +1,33 @@
+{
+    "name":"MongoDB ActiveEntity Suite",
+    "version":"1.0.0+0001",
+    "author":"Sean Daniels <sdaniels@padawan.net>",
+    "homepage":"https://github.com/sjdaniels/coldbox-module-mongoentity",
+    "documentation":"https://github.com/sjdaniels/coldbox-module-mongoentity/blob/master/README.md",
+    "repository":{
+        "type":"git",
+        "URL":"https://github.com/sjdaniels/coldbox-module-mongoentity.git"
+    },
+    "slug":"mongoentity",
+    "shortDescription":"ActiveEntity-like interface and utils for MongoDB collections",
+    "type":"modules",
+    "packageDirectory":"mongoentity",
+    "keywords":[
+        "mongodb"
+        "activeentity"
+    ],
+    "private":true,
+    "engines":[
+        {
+            "type":"lucee",
+            "version":">4.5"
+        },
+        {
+            "type":"adobe",
+            "version":">9.02"
+        }
+    ],
+    "dependencies":{
+        "cbvalidation":"1.1.0"
+    }
+}

@@ -99,7 +99,7 @@ component output="false" accessors="true"  {
 
     private function getMongoHelpers(){
     	if (!structkeyexists(variables,"MongoHelpers"))
-    		variables.MongoHelpers = wirebox.getInstance(dsl:"MongoHelpers@convertedplugins")
+    		variables.MongoHelpers = wirebox.getInstance(dsl:"Utils@mongoentity")
 
     	return variables.MongoHelpers;
     }

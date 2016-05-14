@@ -633,13 +633,25 @@ component output="false" accessors="true"  {
                 result = [];
                 if (!structkeyexists(variables,target)) return result;
 
+                var criteriaValues = [];
+                var criteriaKey = "_id";
                 for ( var ii in variables[target]) {
                     if (targetProperty.joinColumn == "id") {
-                        arrayappend( result, _entityNew(targetProperty.cfc).findWhere({ "_id":_mongoID(ii) }) )
+                        criteriaValues.append( _mongoID(ii) );
                     } else {
-                        var criteria = { "#targetProperty.joinColumn#"=ii }
-                        arrayappend( result, _entityNew(targetProperty.cfc).findWhere(criteria))
+                        criteriaValues.append( ii );
+                        criteriaKey = targetProperty.joinColumn;
                     }
+                }
+
+                var unorderedResults = _entityNew(targetProperty.cfc).list(criteria:{"#criteriaKey#":{"$in":criteriaValues}}, asQuery:false, withRowCount:false);
+                var idMap = {};
+                for (local.obj in unorderedResults) {
+                	idMap[local.obj.getVariables()[criteriaKey]] = local.obj;
+                }
+
+                for (ii in variables[target]) {
+                	result.append( idMap[ii] );
                 }
             break;
         

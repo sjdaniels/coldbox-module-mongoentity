@@ -421,7 +421,7 @@ component output="false" accessors="true"  {
     									collection=getCollection() // allows us to create indexes on a temp version of the collection
     								){
     	var fields = getMongoHelpers().MongoDBObjectBuilder()
-    	var options = getMongoHelpers().MongoDBObjectBuilder()
+    	var options = {}
 
     	if (arguments.forceReindex?:false){
 			collection.dropIndexes()
@@ -429,7 +429,7 @@ component output="false" accessors="true"  {
 
     	for (var index in getCollectionIndexes()) {
     		fields = getMongoHelpers().MongoDBObjectBuilder()
-    		options = getMongoHelpers().MongoDBObjectBuilder()
+    		options = {}
 
     		index.fields.each(function(field){
     			if (isSimpleValue(field)){
@@ -442,20 +442,26 @@ component output="false" accessors="true"  {
     			}
     		});
 
-    		options.add("name",index.name)
-    		options.add("sparse",index.sparse?:false)
-    		options.add("unique",index.unique?:false)
+    		options["name"] = index.name;
+    		options["unique"] = index.unique ?: false;
+
+    		if (!isnull(index.partialFilterExpression))
+    			options["partialFilterExpression"] = index.partialFilterExpression;
+    		else 
+    			options["sparse"] = index.sparse ?: false;
+
+
     		if (!isnull(arguments.dropDups))
-	    		options.add("dropDups",arguments.dropDups)
+    			options["dropDups"] = arguments.dropDups;
 
 	    	local.timer = "&nbsp;&nbsp;&nbsp;&nbsp;...index #getCollectionName()#.#index.name#";
 	    	getTimer().start(local.timer);
 	    		try {
-	    			collection.createIndex( fields.get(), options.get() )
+	    			collection.createIndex( fields.get(), options )
 	    		} catch (Any local.e) {
 	    			try {
 		    			collection.dropIndex( index.name )
-		    			collection.createIndex( fields.get(), options.get() )
+		    			collection.createIndex( fields.get(), options )
 	    			} catch (any local.ee) {
 	    				throw(argumentCollection:local.e);
 	    			}

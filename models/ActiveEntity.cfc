@@ -27,7 +27,7 @@ component output="false" accessors="true"  {
             setEntityName(listLast( md.name, "." ));
         }
 
-        componentPath = md.name;
+        // componentPath = md.name;
 
         if ( structkeyexists(md,"collection") ) {
             setCollectionName( md.collection );
@@ -494,10 +494,14 @@ component output="false" accessors="true"  {
         return result;
     }
 
-    private component function _entityNew(string componentPath=componentPath) {
-        var result = createObject("component", componentPath).init();
-        wirebox.autowire(target:result, targetID:componentPath);
-        return result;
+    private component function _entityNew(string entity=getEntityName(), string componentPath) {
+        if (!isnull(componentPath)) {
+	        var result = createObject("component", componentPath).init();
+	        wirebox.autowire(target:result, targetID:componentPath);
+	        return result;
+        }
+
+        return wirebox.getInstance(entity);
     }
 
     public query function cursorToQuery(required any cursor) {
@@ -650,7 +654,13 @@ component output="false" accessors="true"  {
                     }
                 }
 
-                var unorderedResults = _entityNew(targetProperty.cfc).list(criteria:{"#criteriaKey#":{"$in":criteriaValues}}, asQuery:false, withRowCount:false);
+                if (targetProperty.keyExists("cfc")) {
+                	local.entity = _entityNew(componentPath:targetProperty.cfc);
+                } else {
+                	local.entity = _entityNew(targetProperty.mongoentity);
+                }
+
+                var unorderedResults = local.entity.list(criteria:{"#criteriaKey#":{"$in":criteriaValues}}, asQuery:false, withRowCount:false);
                 var idMap = {};
                 for (local.obj in unorderedResults) {
                 	idMap[local.obj.getVariables()[criteriaKey]] = local.obj;
@@ -663,16 +673,22 @@ component output="false" accessors="true"  {
         
             default:
 
+                if (targetProperty.keyExists("cfc")) {
+                	local.entity = _entityNew(componentPath:targetProperty.cfc);
+                } else {
+                	local.entity = _entityNew(targetProperty.mongoentity);
+                }
+
                 // if property is null, return an empty object
-                if (!structkeyexists(variables,target)) return _entityNew(targetProperty.cfc);
+                if (!structkeyexists(variables,target)) return local.entity;
                 if (targetProperty.joinColumn == "id") {
-                    result = _entityNew(targetProperty.cfc).findWhere({ "_id":_mongoID(variables[target]) });
+                    result = local.entity.findWhere({ "_id":_mongoID(variables[target]) });
                 } else {
                     var criteria = { "#targetProperty.joinColumn#"=variables[target] }
-                    result = _entityNew(targetProperty.cfc).findWhere(criteria);
+                    result = local.entity.findWhere(criteria);
                 }
                 // if we don't have a result yet, no linked document(s) exist with FK, return empty object
-                if ( isnull(result) ) result = _entityNew(targetProperty.cfc);
+                if ( isnull(result) ) result = local.entity;
             break;
         }
 
@@ -695,14 +711,14 @@ component output="false" accessors="true"  {
                 result = [];
                 if (!structkeyexists(variables,target)) return result;
                 for ( var ii in variables[target]) {
-                	local.item = _entityNew(targetProperty.cfc)
+                	local.item = targetProperty.keyExists("cfc") ? _entityNew(componentPath:targetProperty.cfc) : _entityNew(targetProperty.mongoentity);
                 	populateFromDoc(local.item, ii)
                 	result.append( local.item )
                 }
             break;
         
             default:
-                result = _entityNew(targetProperty.cfc);
+                result = targetProperty.keyExists("cfc") ? _entityNew(componentPath:targetProperty.cfc) : _entityNew(targetProperty.mongoentity);
                 // if property is null, return an empty object
                 if (!structkeyexists(variables,target)) return result;
 

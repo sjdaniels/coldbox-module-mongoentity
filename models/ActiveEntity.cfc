@@ -206,15 +206,20 @@ component output="false" accessors="true"  {
         if (arguments.max) arguments.limit = arguments.max;
 
         // parse sort string into mongo sort struct
-        local.sort = getMongoHelpers().sortFormat( arguments.sortorder );
+        if (!isempty(arguments.sortorder))
+        	local.sort = getMongoHelpers().sortFormat( arguments.sortorder );
 
-        getTimer().start("#getEntityName()#.list( #serializeJSON(arguments.criteria)# ).sort( #serializeJSON(local.sort)# )")
+        getTimer().start("#getEntityName()#.list( #serializeJSON(arguments.criteria)# ).sort( #serializeJSON(local.sort?:{})# )")
             local.cursor = getCollection()
-            	.find(arguments.criteria)
-            	.sort(local.sort)
+            	.find(arguments.criteria);
+
+            if (!isnull(local.sort))
+            	local.cursor.sort(local.sort);
+
+            local.cursor
             	.skip(arguments.offset) 
             	.limit(arguments.limit); 
-        getTimer().stop("#getEntityName()#.list( #serializeJSON(arguments.criteria)# ).sort( #serializeJSON(local.sort)# )")
+        getTimer().stop("#getEntityName()#.list( #serializeJSON(arguments.criteria)# ).sort( #serializeJSON(local.sort?:{})# )")
         
         if (arguments.withRowCount){
 	        getTimer().start("-- get cursor count")

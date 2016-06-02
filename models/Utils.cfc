@@ -1,5 +1,9 @@
 component output="false" singleton {
 
+	function init() {
+		variables.builder = createobject("java","com.mongodb.BasicDBObjectBuilder");
+	}
+
 	function MongoDBObject(){
 		var DBObject = MongoDBObjectBuilder();
 		var key = "";
@@ -32,7 +36,7 @@ component output="false" singleton {
 
     function MongoDBObjectBuilder(){
 
-    	return createobject("java","com.mongodb.BasicDBObjectBuilder").start()
+    	return builder.start()
     }
 
     function MongoDayCriteria(required date theDate, boolean asObjectIDs=false){

@@ -90,7 +90,7 @@ component output="false" accessors="true"  {
 
     private function getMongoDB(){
     	if (!structkeyexists(variables,"mongoDB"))
-    		variables.mongoDB = application["wirebox:mongoDB"]
+    		variables.mongoDB = application.wirebox.getInstance("MongoDB");
 
     	return variables.mongoDB;
     }

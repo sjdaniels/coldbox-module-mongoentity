@@ -10,7 +10,7 @@ component output="false" accessors="true"  {
     property name="databaseName" type="string" persist="false" default="";
     property name="collectionName" type="string" persist="false";
     property name="collectionIndexes" type="array" persist="false";
-    property name="entityProperties" type="array" persist="false";
+    property name="entityProperties" type="struct" persist="false";
     property name="rowcount" type="numeric" persist="false";
 
     public ActiveEntity function init(){
@@ -27,8 +27,6 @@ component output="false" accessors="true"  {
             setEntityName(listLast( md.name, "." ));
         }
 
-        // componentPath = md.name;
-
         if ( structkeyexists(md,"collection") ) {
             setCollectionName( md.collection );
         }
@@ -39,9 +37,9 @@ component output="false" accessors="true"  {
 
         // set properties with defaults, property list, and set up indexes
         local.collectionIndexes = [];
-        local.entityProperties = [];
+        local.entityProperties = {};
         for ( var prop in getInheritedProperties( md ) ) {
-            local.entityProperties.append( prop.name );
+        	local.entityProperties[prop.name] = duplicate(prop);
             if (structkeyexists(prop,"default")) {
                 var proptype = prop.type ?: "string";
                 switch(proptype){
@@ -350,13 +348,11 @@ component output="false" accessors="true"  {
         // extract the property name
         var target = mid(arguments.missingMethodName, local.matcher.pos[3], local.matcher.len[3]);
         // extract the property metadata
-        var targetProperty = {};
-        for (var prop in getInheritedProperties(getMetaData(this))) {
-            if (prop.name eq target) targetProperty = prop;
-        }
+        var properties = getEntityProperties();
+        var targetProperty = properties.keyExists(target) ? properties[target] : {};
 
         if (!structkeyexists(targetProperty,"type"))
-            targetProperty.type="any"
+            targetProperty.type="any";
 
         switch(operation){
             case "get":
@@ -366,17 +362,12 @@ component output="false" accessors="true"  {
                 	mongoRelationType = "none"; // force get raw uninflated value
                 }
 
-                switch (mongoRelationType) {
-                    case "linked":
-                        return getLinkedDocs( target, targetProperty );
-                    break;
-                    case "embedded":
-                        return getEmbeddedDocs( target, targetProperty );
-                    break;
-                    default:
-                        return structKeyExists(variables,target) ? variables[target] : nullValue();
-                    break;
-                }
+                if (mongoRelationType eq "none")
+                    return structKeyExists(variables,target) ? variables[target] : nullValue();
+                if (mongoRelationType eq "linked")
+                    return getLinkedDocs( target, targetProperty );
+                if (mongoRelationType eq "embedded")
+                    return getEmbeddedDocs( target, targetProperty );
 
             break;
 
@@ -513,7 +504,7 @@ component output="false" accessors="true"  {
     }
 
     public query function cursorToQuery(required any cursor) {
-        var result = querynew("_id,#getEntityProperties().toList()#");
+        var result = querynew("_id,#getEntityProperties().keyList()#");
         var row = {};
         var col = "";
         while (arguments.cursor.hasNext()) {
@@ -830,23 +821,27 @@ component output="false" accessors="true"  {
     }
 
     private array function getInheritedProperties(required struct metadata) {
-		var inheritedproperties = [];
-        var prop = {};
+		if (isnull(variables.inheritedproperties)) {
+			var inheritedproperties = [];
+	        var prop = {};
 
-        local.extends = true;
-        local.comMD = metadata;
-        
-        while (local.extends) {
-        	for (prop in (local.comMD.properties?:[])) {
-        		inheritedproperties.append( prop );
-        	}
-        	if (local.comMD.keyExists("extends"))
-        		local.comMD = local.comMD.extends;
-        	else 
-        		break;
-        }
+	        local.extends = true;
+	        local.comMD = metadata;
+	        
+	        while (local.extends) {
+	        	for (prop in (local.comMD.properties?:[])) {
+	        		inheritedproperties.append( prop );
+	        	}
+	        	if (local.comMD.keyExists("extends"))
+	        		local.comMD = local.comMD.extends;
+	        	else 
+	        		break;
+	        }
+
+	        variables.inheritedproperties = inheritedproperties;
+		}
     
-        return inheritedproperties;
+        return variables.inheritedproperties;
     }
 
     /* ----------------------------------------------- EVENT HANDLERS --------------------------------------------- */    

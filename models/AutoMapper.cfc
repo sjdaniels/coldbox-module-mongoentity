@@ -1,10 +1,10 @@
-component hint="Scans model locations and binds ActiveEntity objects by name" {
+component hint="Scans model locations and binds ActiveEntity objects by name" singleton {
 
 	property name="wirebox" inject="wirebox";
 
-	public void function mapEntities(required struct scanLocations) {
-		var entities = {}
-
+	public array function mapEntities(required struct scanLocations) {
+		var entities = {};
+		var mapped = [];
 
 		loop collection="#scanLocations#" item="local.location" index="local.i" {
 			local.models = directoryList(path:local.location,recurse:true,listinfo:"path",filter:"*.cfc");
@@ -39,9 +39,10 @@ component hint="Scans model locations and binds ActiveEntity objects by name" {
 		var Injector = wirebox.getBinder();
 		for (var entity in entities) {
 			Injector.map(entity).to(entities[entity]);
+			mapped.append(entity);
 		}
 
-		return;
+		return mapped;
 	}
 
 }

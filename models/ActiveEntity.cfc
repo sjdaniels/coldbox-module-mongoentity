@@ -428,6 +428,9 @@ component output="false" accessors="true"  {
     	var fields = getMongoHelpers().MongoDBObjectBuilder()
     	var options = {}
 
+    	if (isnull(this.getCollectionName()))
+    		return;
+
     	if (arguments.forceReindex?:false){
 			collection.dropIndexes()
     	}

@@ -17,7 +17,8 @@ component {
 
 	function onLoad(){
 		var mapper = wirebox.getInstance("#moduleMapping#.models.AutoMapper");
-		mapper.mapEntities( wirebox.getBinder().getScanLocations() );
+		var mapped = mapper.mapEntities( wirebox.getBinder().getScanLocations() );
+		controller.setSetting("mongoentities", mapped);
 	}
 
 	function onUnload(){

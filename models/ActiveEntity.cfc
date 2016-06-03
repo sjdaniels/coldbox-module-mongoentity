@@ -6,12 +6,11 @@
 */
 component output="false" accessors="true"  {
 
-    property name="entityName" type="string" persist="false";
-    property name="databaseName" type="string" persist="false" default="";
-    property name="collectionName" type="string" persist="false";
-    property name="collectionIndexes" type="array" persist="false";
-    property name="entityProperties" type="struct" persist="false";
-    property name="rowcount" type="numeric" persist="false";
+    property metadata name="entityName" type="string" persist="false";
+    property metadata name="databaseName" type="string" persist="false" default="";
+    property metadata name="collectionName" type="string" persist="false";
+    property metadata name="collectionIndexes" type="array" persist="false";
+    property metadata name="entityProperties" type="struct" persist="false";
 
     public ActiveEntity function init(){
         var md = getMetadata( this );
@@ -40,34 +39,6 @@ component output="false" accessors="true"  {
         local.entityProperties = {};
         for ( var prop in getInheritedProperties( md ) ) {
         	local.entityProperties[prop.name] = duplicate(prop);
-            if (structkeyexists(prop,"default")) {
-                var proptype = prop.type ?: "string";
-                switch(proptype){
-                    case "array":
-                        variables[prop.name] = evaluate(prop.default);
-                    break;
-                    case "struct":
-                        variables[prop.name] = evaluate(prop.default);
-                    break;
-                    case "date":
-                        variables[prop.name] = evaluate(prop.default);
-                    break;
-                    case "timestamp":
-                        variables[prop.name] = evaluate(prop.default);
-                        variables["timestampProperty"] = prop.name;
-                    break;
-                    case "any":
-                        variables[prop.name] = prop.default;
-                    break;
-                
-                    default:
-                        variables[prop.name] = javacast(proptype,prop.default);
-                    break;
-                }
-            }
-            if (structkeyexists(prop,"defaultfunction")){
-            	variables[prop.name] = evaluate(prop.defaultfunction)
-            }
             if (structkeyexists(prop,"index")) {
                 local.index         = structnew();
                 local.index.name    = prop.index;
@@ -83,9 +54,54 @@ component output="false" accessors="true"  {
                 arrayappend( local.collectionIndexes, local.index );
             }
         }
+        
         setEntityProperties(local.entityProperties);
         setCollectionIndexes(local.collectionIndexes);
-        return this;
+
+        // clear properties and reset to default values
+        return reset();
+    }
+
+    public ActiveEntity function reset() {
+    	loop collection="#getEntityProperties()#" item="local.prop" index="local.name" {
+	        
+	        // skip metadata and injected properties
+	        if (local.prop.keyExists("metadata") || local.prop.keyExists("inject"))
+	        	continue;
+
+	        // clear the value
+	        structDelete(variables, local.name);
+	        structDelete(variables, "#local.name#_objectified");
+
+	        // set to default value
+	        if ( local.prop.keyExists("default")) {
+	            var proptype = local.prop.type ?: "string";
+	            switch ( proptype ) {
+	                case "array":
+	                    variables[local.name] = evaluate(local.prop.default);
+	                break;
+	                case "struct":
+	                    variables[local.name] = evaluate(local.prop.default);
+	                break;
+	                case "date":
+	                    variables[local.name] = evaluate(local.prop.default);
+	                break;
+	                case "timestamp":
+	                    variables[local.name] = evaluate(local.prop.default);
+	                    variables["timestampProperty"] = local.name;
+	                break;
+	                case "any":
+	                    variables[local.name] = local.prop.default;
+	                break;
+	            
+	                default:
+	                    variables[local.name] = javacast(proptype,local.prop.default);
+	                break;
+	            }
+	        }
+    	}
+
+    	return this;
     }
 
     private function getMongoDB(){
@@ -199,7 +215,7 @@ component output="false" accessors="true"  {
         return;
     }
 
-    public any function list(struct criteria={}, string sortorder="", numeric offset=0, numeric max=0, boolean asQuery=true, numeric limit=0, boolean withRowCount=true) {
+    public any function list(struct criteria={}, string sortorder="", numeric offset=0, numeric max=0, boolean asQuery=true, numeric limit=0, boolean withRowCount=true, boolean iterator=false) {
 
         if (arguments.max) arguments.limit = arguments.max;
 
@@ -221,7 +237,7 @@ component output="false" accessors="true"  {
         
         if (arguments.withRowCount){
 	        getTimer().start("-- get cursor count")
-		        setRowCount(local.cursor.count());
+		        this.setRowCount(local.cursor.count());
 	        getTimer().stop("-- get cursor count")
         }
 
@@ -230,6 +246,10 @@ component output="false" accessors="true"  {
             getTimer().start("-- Converting to query")
             	local.result = cursorToQuery(local.cursor);
             getTimer().stop("-- Converting to query")
+        } else if (arguments.iterator) {
+            getTimer().start("-- Converting to iterator")
+            	local.result = new Iterator(this, local.cursor);
+            getTimer().stop("-- Converting to iterator")
         } else {
             getTimer().start("-- Converting to object array")
             	local.result = cursorToArrayOfObjects(local.cursor);
@@ -607,7 +627,7 @@ component output="false" accessors="true"  {
         return result;
     }
 
-    private void function populateFromDoc(component entity, struct doc) {
+    public void function populateFromDoc(component entity, struct doc) {
         var docNoNulls = {}
         if (structkeyexists(arguments.doc,"_id")) {
             if (isSimpleValue(arguments.doc["_id"]) || isStruct(arguments.doc["_id"]))
@@ -637,7 +657,7 @@ component output="false" accessors="true"  {
         var result = "";
         var type = structKeyExists(targetProperty, "type") ? targetProperty.type : "any";
 
-        switch(type) {
+        switch (type) {
             case "array":
                 result = [];
                 if (!structkeyexists(variables,target)) return result;
@@ -671,12 +691,10 @@ component output="false" accessors="true"  {
             break;
         
             default:
+                if (!structkeyexists(variables,"#target#_entity"))
+                	variables["#target#_entity"] = targetProperty.keyExists("cfc") ? _entityNew(componentPath:targetProperty.cfc) : _entityNew(targetProperty.mongoentity);
 
-                if (targetProperty.keyExists("cfc")) {
-                	local.entity = _entityNew(componentPath:targetProperty.cfc);
-                } else {
-                	local.entity = _entityNew(targetProperty.mongoentity);
-                }
+                local.entity = variables["#target#_entity"].reset();
 
                 // if property is null, return an empty object
                 if (!structkeyexists(variables,target)) return local.entity;
@@ -717,7 +735,10 @@ component output="false" accessors="true"  {
             break;
         
             default:
-                result = targetProperty.keyExists("cfc") ? _entityNew(componentPath:targetProperty.cfc) : _entityNew(targetProperty.mongoentity);
+                if (!structkeyexists(variables,"#target#_entity"))
+                	variables["#target#_entity"] = targetProperty.keyExists("cfc") ? _entityNew(componentPath:targetProperty.cfc) : _entityNew(targetProperty.mongoentity);
+
+                result = variables["#target#_entity"].reset();
                 // if property is null, return an empty object
                 if (!structkeyexists(variables,target)) return result;
 

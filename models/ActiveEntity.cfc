@@ -193,6 +193,22 @@ component output="false" accessors="true"  {
         }
     }
 
+    public ActiveEntity function load(required any id) {
+        this.reset();
+
+        // check if id exists so entityLoad does not throw error
+        if( (isSimpleValue(arguments.id) and len(arguments.id)) OR NOT isSimpleValue(arguments.id) ){
+            var getDoc = getCollection().findOne({"_id":_mongoID(arguments.id)});
+
+            // Check if not null, then return it
+            if( !isnull(getDoc) ){
+                populateFromDoc(this,getDoc);
+            }
+        }
+
+		return this;
+    }
+
     public any function findWhere(struct criteria={}, boolean returnNew=false, string sortorder="") {
         var result = _entityNew();
         local.sort = {};

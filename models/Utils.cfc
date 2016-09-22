@@ -39,9 +39,13 @@ component output="false" singleton {
     	return builder.start()
     }
 
-    function MongoDayCriteria(required date theDate, boolean asObjectIDs=false){
-		var thenextDate = arguments.theDate.add("d",1)
-		var result = {"$gte":createdate(thedate.year(),thedate.month(),thedate.day()),"$lt":createdate(thenextdate.year(),thenextdate.month(),thenextdate.day())}
+    function MongoDayCriteria(required date theDate, boolean asObjectIDs=false, numeric tzoffset){
+		var start = createdate(thedate.year(),thedate.month(),thedate.day())
+		if (!isnull(arguments.tzoffset))
+			start = start.add("s",-arguments.tzoffset);
+
+		var end = start.add("h",24);
+		var result = {"$gte":start,"$lt":end}
 
 		if (arguments.asObjectIDs){
 			result["$gte"] = MongoDBID(result["$gte"])

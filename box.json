@@ -28,6 +28,7 @@
         }
     ],
     "dependencies":{
-        "cbvalidation":"1.1.0"
+        "cbdebugger":"^1.3.0",
+        "cbvalidation":"^1.1.0"
     }
 }

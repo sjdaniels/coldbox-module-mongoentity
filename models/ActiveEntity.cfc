@@ -12,6 +12,8 @@ component output="false" accessors="true"  {
     property metadata name="collectionIndexes" type="array" persist="false";
     property metadata name="entityProperties" type="struct" persist="false";
 
+    function getLogBox() provider="logbox" {}
+
     public ActiveEntity function init(){
         var md = getMetadata( this );
 
@@ -459,7 +461,11 @@ component output="false" accessors="true"  {
     		return;
 
     	if (arguments.forceReindex?:false){
-			collection.dropIndexes()
+	    	getLogbox().getLogger(this).warn("mongoentity: dropped all indexes on #getCollectionName()#");
+	    	local.timer = "&nbsp;&nbsp;&nbsp;&nbsp;...dropIndexes #getCollectionName()#";
+			getTimer().start(local.timer);
+			collection.dropIndexes();
+			getTimer().stop(local.timer);
     	}
 
     	for (var index in getCollectionIndexes()) {
@@ -485,7 +491,6 @@ component output="false" accessors="true"  {
     		else 
     			options["sparse"] = index.sparse ?: false;
 
-
     		if (!isnull(arguments.dropDups))
     			options["dropDups"] = arguments.dropDups;
 
@@ -493,10 +498,12 @@ component output="false" accessors="true"  {
 	    	getTimer().start(local.timer);
 	    		try {
 	    			collection.createIndex( fields.get(), options )
+			    	getLogbox().getLogger(this).info("mongoentity: ensured index #getCollectionName()#.#index.name#");
 	    		} catch (Any local.e) {
 	    			try {
-		    			collection.dropIndex( index.name )
-		    			collection.createIndex( fields.get(), options )
+		    			collection.dropIndex( index.name );
+		    			collection.createIndex( fields.get(), options );
+			    		getLogbox().getLogger(this).warn("mongoentity: dropped and rebuilt index #getCollectionName()#.#index.name#");
 	    			} catch (any local.ee) {
 	    				throw(argumentCollection:local.e);
 	    			}

@@ -13,11 +13,13 @@ component output="false" accessors="true"  {
     property metadata name="entityProperties" type="struct" persist="false";
 
     function getLogBox() provider="logbox" {}
+    function getWireBox() provider="wirebox" {}
+    function getMongoDB() provider="id:MongoDB" {}
+    function getMongoHelpers() provider="Utils@mongoentity" {}
+    function getTimer() provider="timer@cbdebugger" {}
 
     public ActiveEntity function init(){
         var md = getMetadata( this );
-
-        wirebox = application.wirebox;
 
         // find entity name on md?
         if( structKeyExists(md,"entityName") ){
@@ -106,27 +108,6 @@ component output="false" accessors="true"  {
     	return this;
     }
 
-    private function getMongoDB(){
-    	if (!structkeyexists(variables,"mongoDB"))
-    		variables.mongoDB = application.wirebox.getInstance("MongoDB");
-
-    	return variables.mongoDB;
-    }
-
-    private function getMongoHelpers(){
-    	if (!structkeyexists(variables,"MongoHelpers"))
-    		variables.MongoHelpers = wirebox.getInstance(dsl:"Utils@mongoentity")
-
-    	return variables.MongoHelpers;
-    }
-
-    private function getTimer(){
-    	if (!structkeyexists(variables,"timer"))
-    		variables.timer = wirebox.getInstance("timer@cbdebugger")
-
-    	return variables.timer;
-    }
-
     public function getVariables(){
     	return variables;
     }
@@ -165,7 +146,7 @@ component output="false" accessors="true"  {
 
         // Properties exists?
         if( NOT structIsEmpty(arguments.properties) ){
-            wirebox.getObjectPopulator().populateFromStruct( entity, arguments.properties );
+            getWirebox().getObjectPopulator().populateFromStruct( entity, arguments.properties );
         }
 
         return entity;
@@ -340,7 +321,7 @@ component output="false" accessors="true"  {
         }
 
         arguments.target = this;
-        return wirebox.getObjectPopulator().populateFromStruct(argumentCollection=arguments);
+        return getWirebox().getObjectPopulator().populateFromStruct(argumentCollection=arguments);
     }
 
     cbvalidation.models.result.ValidationResult function validate(string fields="*", any constraints="", string locale="", string excludeFields="") {
@@ -350,7 +331,7 @@ component output="false" accessors="true"  {
 
     boolean function isValid(string fields="*", any constraints="", string locale="", string excludeFields=""){
         // Get validation manager
-        var validationManager = wirebox.getInstance("ValidationManager@cbvalidation");
+        var validationManager = getWirebox().getInstance("ValidationManager@cbvalidation");
         // validate constraints
         var thisConstraints = "";
         if( structKeyExists(this,"constraints") ){ thisConstraints = this.constraints; }
@@ -539,11 +520,11 @@ component output="false" accessors="true"  {
     private component function _entityNew(string entity=getEntityName(), string componentPath) {
         if (!isnull(componentPath)) {
 	        var result = createObject("component", componentPath).init();
-	        wirebox.autowire(target:result, targetID:componentPath);
+	        getWirebox().autowire(target:result, targetID:componentPath);
 	        return result;
         }
 
-        return wirebox.getInstance(entity);
+        return getWirebox().getInstance(entity);
     }
 
     public query function cursorToQuery(required any cursor) {

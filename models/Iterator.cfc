@@ -37,4 +37,8 @@ component {
 		variables.cursor.limit( arguments.num );
 		return;
 	}
+
+	public numeric function count() {
+		return variables.cursor.count();
+	}
 }

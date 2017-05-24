@@ -247,7 +247,7 @@ component output="false" accessors="true"  {
             getTimer().stop("-- Converting to query")
         } else if (arguments.iterator) {
             getTimer().start("-- Converting to iterator")
-            	local.result = new Iterator(this, local.cursor);
+            	local.result = getIterator(this, local.cursor);
             getTimer().stop("-- Converting to iterator")
         } else {
             getTimer().start("-- Converting to object array")
@@ -256,6 +256,10 @@ component output="false" accessors="true"  {
         }
 
         return local.result;
+    }
+
+    public function getIterator(required ActiveEntity entity, required any cursor) {
+		return new Iterator( arguments.entity, arguments.cursor );
     }
 
     public array function random(struct criteria={}, numeric max=3) {

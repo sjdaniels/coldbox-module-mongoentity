@@ -3,8 +3,13 @@ component {
 	public Iterator function init(required ActiveEntity entity, required any cursor) {
 		variables.entity = arguments.entity;
 		variables.cursor = arguments.cursor;
-		variables.size = arguments.cursor.size();
 		variables.counter = 0;
+		// no size() for aggregation cursors
+		try {
+			variables.size = arguments.cursor.size();
+		}
+		catch (any var e) {}
+		
 
 		return this;
 	}

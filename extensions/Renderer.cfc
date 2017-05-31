@@ -30,9 +30,10 @@ component extends="coldbox.system.web.Renderer" {
 			isAggCursor = true;
 		}
 		
+		// zero index for cursor
+		arguments.collectionStartRow--;
+
 		if (!isAggCursor) {
-			// zero index for cursor
-			arguments.collectionStartRow--;
 
 			if (arguments.collectionStartRow)
 				arguments.collection.skip( arguments.collectionStartRow );
@@ -51,7 +52,7 @@ component extends="coldbox.system.web.Renderer" {
 			variables._counter = arguments.collection.currentrow();
 			variables[ arguments.collectionAs ] = arguments.collection.next();
 			
-			if (isAggCursor && (variables._counter lt arguments.collectionStartRow || variables._counter gte (arguments.collectionStartRow+arguments.collectionMaxRows)))
+			if (isAggCursor && arguments.collectionMaxRows && (variables._counter lt arguments.collectionStartRow || variables._counter gte (arguments.collectionStartRow+arguments.collectionMaxRows)))
 				continue;
 			
 			// prepend the delim

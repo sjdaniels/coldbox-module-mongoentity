@@ -21,24 +21,39 @@ component extends="coldbox.system.web.Renderer" {
 		if (!isInstanceOf(arguments.collection, "Iterator"))
 			return super.renderViewCollection(argumentCollection=arguments);
 
-		// zero index for cursor
-		arguments.collectionStartRow--;
-
-		if (arguments.collectionStartRow)
-			arguments.collection.skip( arguments.collectionStartRow );
-
-		recLen = arguments.collection.len();
-		// is max rows passed?
-		if( arguments.collectionMaxRows NEQ 0 AND arguments.collectionMaxRows LTE recLen ){ 
-			recLen = arguments.collectionMaxRows; 
-			arguments.collection.limit( arguments.collectionMaxRows );
+		var isAggCursor = false;
+		
+		try {
+			recLen = arguments.collection.len();
 		}
+		catch (any var e) {
+			isAggCursor = true;
+		}
+		
+		if (!isAggCursor) {
+			// zero index for cursor
+			arguments.collectionStartRow--;
+
+			if (arguments.collectionStartRow)
+				arguments.collection.skip( arguments.collectionStartRow );
+
+			// is max rows passed?
+			if( arguments.collectionMaxRows NEQ 0 AND arguments.collectionMaxRows LTE recLen ){ 
+				recLen = arguments.collectionMaxRows; 
+				arguments.collection.limit( arguments.collectionMaxRows );
+			}
+		}
+
 		// Create local marker
 		variables._items	= recLen;
 		// iterate and present
 		while ( arguments.collection.hasNext() ) {
 			variables._counter = arguments.collection.currentrow();
 			variables[ arguments.collectionAs ] = arguments.collection.next();
+			
+			if (isAggCursor && (variables._counter lt arguments.collectionStartRow || variables._counter gte (arguments.collectionStartRow+arguments.collectionMaxRows)))
+				continue;
+			
 			// prepend the delim
 			if ( variables._counter NEQ arguments.collectionStartRow ) {
 				buffer.append( arguments.collectionDelim );
@@ -46,6 +61,10 @@ component extends="coldbox.system.web.Renderer" {
 			// render item composite
 			buffer.append( renderViewComposite( arguments.view, arguments.viewPath, arguments.viewHelperPath, arguments.args ) );
 		}
+
+		// can use this to get "total rows" count for aggregation cursors
+		prc.totaliterations = variables._counter;
+
 		return buffer.toString();
     }
 }

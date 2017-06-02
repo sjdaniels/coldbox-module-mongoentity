@@ -64,7 +64,7 @@ component extends="coldbox.system.web.Renderer" {
 		}
 
 		// can use this to get "total rows" count for aggregation cursors
-		prc.totaliterations = variables._counter;
+		prc.totaliterations = variables._counter ?: 0;
 
 		return buffer.toString();
     }

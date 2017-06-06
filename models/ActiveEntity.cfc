@@ -129,6 +129,9 @@ component output="false" accessors="true"  {
     }
 
     public any function getCollection() {
+		if (isnull(this.getCollectionName()))
+			return;
+
         // returns the native collection using Railo's extension
         if (isnull(variables.mongoDBCollection)) {        	
         	if (getDatabaseName()=="")

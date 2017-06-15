@@ -440,7 +440,8 @@ component output="false" accessors="true"  {
     public void function ensureIndexes(
     									boolean dropDups, 
     									boolean forceReindex, 
-    									collection=getCollection() // allows us to create indexes on a temp version of the collection
+    									collection=getCollection(), // allows us to create indexes on a temp version of the collection
+    									boolean background=true 
     								){
     	var fields = getMongoHelpers().MongoDBObjectBuilder()
     	var options = {}
@@ -471,6 +472,7 @@ component output="false" accessors="true"  {
     			}
     		});
 
+    		options["background"] = arguments.background;
     		options["name"] = index.name;
     		options["unique"] = index.unique ?: false;
 
@@ -482,7 +484,7 @@ component output="false" accessors="true"  {
     		if (!isnull(arguments.dropDups))
     			options["dropDups"] = arguments.dropDups;
 
-	    	local.timer = "&nbsp;&nbsp;&nbsp;&nbsp;...index #getCollectionName()#.#index.name#";
+	    	local.timer = "&nbsp;&nbsp;&nbsp;&nbsp;...index #getCollectionName()#.#index.name#" & (options.background ? " (background)" : "");
 	    	getTimer().start(local.timer);
 	    		try {
 	    			collection.createIndex( fields.get(), options )

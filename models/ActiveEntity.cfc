@@ -811,18 +811,19 @@ component output="false" accessors="true"  {
 					var item = {}
 					if ( isObject(ii) ) {
 						item = structnew("linked");
-						for ( var prop in getMetaData(ii).properties ) {
-							if (!structkeyexists(prop,"persist") || prop.persist == true) {
-								item[prop.name] = evaluate( "ii.get#prop.name#()" )
-								if (!isnull(item[prop.name]) && isInstanceOf(item[prop.name],"ActiveEntity"))
-									item[prop.name]=item[prop.name].getMemento(forPersisting:true)
-								if (isnull(item[prop.name]))
-									structdelete(item,prop.name)
+						var props = ii.getEntityProperties();
+						for ( var prop in props ) {
+							if (!structkeyexists(props[prop],"persist") || props[prop].persist == true) {
+								item[props[prop].name] = evaluate( "ii.get#props[prop].name#()" );
+								if (!isnull(item[props[prop].name]) && isInstanceOf(item[props[prop].name],"ActiveEntity"))
+									item[props[prop].name]=item[props[prop].name].getMemento(forPersisting:true);
+								if (isnull(item[props[prop].name]))
+									structdelete(item,props[prop].name);
 							}
 						} 
 						arrayappend( result, item );
 					} else {
-						arrayappend( result, ii )
+						arrayappend( result, ii );
 					}
 				}
 
@@ -835,9 +836,13 @@ component output="false" accessors="true"  {
 				var result = structnew("linked");
 				if (isObject(arguments.value)) {
 					result = structnew("linked");
-					for ( var prop in getMetaData(arguments.value).properties ) {
-						if (!structkeyexists(prop,"persist") || prop.persist == true)
-							result[prop.name] = evaluate( "arguments.value.get#prop.name#(lazy:true)" )
+					var props = arguments.value.getEntityProperties();
+					for ( var prop in props ) {
+						if (!structkeyexists(props[prop],"persist") || props[prop].persist == true)
+							result[props[prop].name] = evaluate( "arguments.value.get#props[prop].name#(lazy:true)" )
+						
+						if (isnull(result[props[prop].name]))
+							structdelete(result,props[prop].name);
 					} 
 				} else {
 					variables[target] = arguments.value;

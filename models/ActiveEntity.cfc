@@ -661,7 +661,7 @@ component output="false" accessors="true"  {
 		return;
 	}
 
-	private any function getLinkedDocs(string target required, struct targetProperty required) {
+	private any function getLinkedDocs(required string target, required struct targetProperty) {
 
 		if (structkeyexists(variables,"#target#_objectified")) {
 			return variables["#target#_objectified"];
@@ -727,7 +727,7 @@ component output="false" accessors="true"  {
 		return result;
 	}
 	
-	private any function getEmbeddedDocs(string target required, struct targetProperty required) {
+	private any function getEmbeddedDocs(required string target, required struct targetProperty) {
 
 		if (structkeyexists(variables,"#target#_objectified")) {
 			return variables["#target#_objectified"];
@@ -764,7 +764,7 @@ component output="false" accessors="true"  {
 		return result;
 	}
 	
-	private any function setLinkedDocs(string target required, struct targetProperty required, any value required) {
+	private any function setLinkedDocs(required string target, required struct targetProperty, any value) {
 		var type = structKeyExists(targetProperty, "type") ? targetProperty.type : "any";
 
 		switch(type) {
@@ -799,7 +799,7 @@ component output="false" accessors="true"  {
 		return this;
 	}
 
-	private any function setEmbeddedDocs(string target required, struct targetProperty required, any value required) {
+	private any function setEmbeddedDocs(required string target, required struct targetProperty, any value) {
 		
 		var type = structKeyExists(targetProperty, "type") ? targetProperty.type : "any";
 

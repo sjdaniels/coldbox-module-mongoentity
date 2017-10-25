@@ -34,12 +34,12 @@ component output="false" singleton {
 		return result;
 	}
 
-    function MongoDBObjectBuilder(){
+	function MongoDBObjectBuilder(){
 
-    	return builder.start()
-    }
+		return builder.start()
+	}
 
-    function MongoDayCriteria(required date theDate, boolean asObjectIDs=false, numeric tzoffset){
+	function MongoDayCriteria(required date theDate, boolean asObjectIDs=false, numeric tzoffset){
 		var start = createdate(thedate.year(),thedate.month(),thedate.day())
 		if (!isnull(arguments.tzoffset))
 			start = start.add("s",-arguments.tzoffset);
@@ -53,25 +53,25 @@ component output="false" singleton {
 		}
 
 		return result; 	
-    }
+	}
 
-    struct function sortFormat(any sortorder) {
+	struct function sortFormat(any sortorder) {
 		if (!isSimpleValue(arguments.sortorder))
 			return arguments.sortorder;
 
 		local.result = MongoDBObjectBuilder()
-        if (len(trim(arguments.sortorder))) {
-            for (local.sorttoken in listtoarray(arguments.sortorder)) {
-                local.sortcol = getToken(local.sorttoken,1," ");
-                local.sortdir = findnocase("desc",local.sorttoken) ? -1 : 1;
-                local.result.add(local.sortcol,local.sortdir);
-            }
-        }
-   	
-   		return local.result.get();
-    }
+		if (len(trim(arguments.sortorder))) {
+			for (local.sorttoken in listtoarray(arguments.sortorder)) {
+				local.sortcol = getToken(local.sorttoken,1," ");
+				local.sortdir = findnocase("desc",local.sorttoken) ? -1 : 1;
+				local.result.add(local.sortcol,local.sortdir);
+			}
+		}
+	
+		return local.result.get();
+	}
 
-    numeric function getDistanceBetweenGeoPoints(required array point1, required array point2) {
+	numeric function getDistanceBetweenGeoPoints(required array point1, required array point2) {
 		local.lat1 = point1[2]
 		local.lon1 = point1[1]
 		local.lat2 = point2[2]
@@ -83,5 +83,5 @@ component output="false" singleton {
 		// in meters
 		local.distance = ACOS( SIN(local.lat1)*SIN(local.lat2) + COS(local.lat1)*COS(local.lat2)*COS(local.lon2-local.lon1) ) * 6371000;
 		return local.distance;
-    }
+	}
 }

@@ -1,8 +1,8 @@
 component extends="coldbox.system.web.Renderer" {
 
-    /**
-    * Render a view composed of collections, mostly used internally, use at your own risk.
-    */
+	/**
+	* Render a view composed of collections, mostly used internally, use at your own risk.
+	*/
 	function renderViewCollection(
 		view,
 		viewPath,
@@ -67,5 +67,5 @@ component extends="coldbox.system.web.Renderer" {
 		prc.totaliterations = variables._counter ?: 0;
 
 		return buffer.toString();
-    }
+	}
 }

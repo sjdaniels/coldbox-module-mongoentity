@@ -2,7 +2,6 @@ component output="false" extends="coldbox.system.Interceptor"  {
 
 	public function configure(){
 		variables.indexEnsured = [];
-		variables.timer = getInstance("timer@cbdebugger");
 		return this;
 	}
 	

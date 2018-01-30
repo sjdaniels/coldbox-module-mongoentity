@@ -25,7 +25,7 @@ component {
 	}
 
 	public numeric function len() {
-		return variables.size;
+		return variables.size ?: variables.cursor.hasNext();
 	}
 
 	public numeric function currentrow() {

@@ -4,13 +4,6 @@ component {
 		variables.entity = arguments.entity;
 		variables.cursor = arguments.cursor;
 		variables.counter = 0;
-		// no size() for aggregation cursors
-		try {
-			variables.size = arguments.cursor.size();
-		}
-		catch (any var e) {}
-		
-
 		return this;
 	}
 
@@ -25,7 +18,7 @@ component {
 	}
 
 	public numeric function len() {
-		return variables.size ?: variables.cursor.hasNext();
+		return size() ?: variables.cursor.hasNext();
 	}
 
 	public numeric function currentrow() {
@@ -45,5 +38,13 @@ component {
 
 	public numeric function count() {
 		return variables.cursor.count();
+	}
+
+	public any function size() {		
+		try {
+			return variables.cursor.size();
+		} catch (any var e) {
+			return;
+		}
 	}
 }

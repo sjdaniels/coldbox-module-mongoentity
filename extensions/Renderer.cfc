@@ -49,7 +49,7 @@ component extends="coldbox.system.web.Renderer" {
 		variables._items	= recLen;
 		// iterate and present
 		while ( arguments.collection.hasNext() ) {
-			variables._counter = arguments.collection.currentrow();
+			variables._counter = arguments.collection.currentrow()+1;
 			variables[ arguments.collectionAs ] = arguments.collection.next();
 			
 			if (isAggCursor && arguments.collectionMaxRows && (variables._counter lt arguments.collectionStartRow || variables._counter gte (arguments.collectionStartRow+arguments.collectionMaxRows)))

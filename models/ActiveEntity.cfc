@@ -445,12 +445,15 @@ component output="false" accessors="true"  {
 									){
 		var fields = getMongoHelpers().MongoDBObjectBuilder()
 		var options = {}
+		var logbox = getLogBox().getLogger(this);
 
 		if (isnull(this.getCollectionName()))
 			return;
 
 		if (arguments.forceReindex?:false){
-			getLogbox().getLogger(this).warn("mongoentity: dropped all indexes on #getCollectionName()#");
+			if (logbox.canWarn())
+				logbox.warn("mongoentity: dropped all indexes on #getCollectionName()#");
+			
 			local.timer = "&nbsp;&nbsp;&nbsp;&nbsp;...dropIndexes #getCollectionName()#";
 			getTimer().start(local.timer);
 			collection.dropIndexes();
@@ -488,12 +491,14 @@ component output="false" accessors="true"  {
 			getTimer().start(local.timer);
 				try {
 					collection.createIndex( fields.get(), options )
-					getLogbox().getLogger(this).info("mongoentity: ensured index #getCollectionName()#.#index.name#");
+					if (logbox.canInfo())
+						logbox.info("mongoentity: ensured index #getCollectionName()#.#index.name#");
 				} catch (Any local.e) {
 					try {
 						collection.dropIndex( index.name );
 						collection.createIndex( fields.get(), options );
-						getLogbox().getLogger(this).warn("mongoentity: dropped and rebuilt index #getCollectionName()#.#index.name#");
+						if (logbox.canWarn())
+							logbox.warn("mongoentity: dropped and rebuilt index #getCollectionName()#.#index.name#");
 					} catch (any local.ee) {
 						throw(argumentCollection:local.e);
 					}

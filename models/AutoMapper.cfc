@@ -11,7 +11,13 @@ component hint="Scans model locations and binds ActiveEntity objects by name" si
 			loop array="#local.models#" item="local.model" {
 				local.componentPath = getDirectoryFromPath(local.model).replace( local.location, local.i & "/", 'all').replace("/",".","all");
 				local.component = local.componentPath & (local.componentPath.right(1)=="."?"":".") & getFileFromPath(local.model).replace('.cfc','');
-				local.obj = createobject("component",local.component);
+				try {
+					local.obj = createobject("component",local.component);
+				}
+				catch (any local.e) {
+					// CFC is not a component (i.e. interfaces)
+					continue;
+				}
 				local.metadata = getMetaData(local.obj);
 				local.extends = local.metadata.extends?:""
 				local.isEntity = false;

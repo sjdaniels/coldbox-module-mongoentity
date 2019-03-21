@@ -2,15 +2,22 @@ component hint="Scans model locations and binds ActiveEntity objects by name" si
 
 	property name="wirebox" inject="wirebox";
 
-	public array function mapEntities(required struct scanLocations) {
+	public array function mapEntities(required struct scanLocations, string moduleNamespace) {
 		var entities = {};
 		var mapped = [];
 
 		loop collection="#scanLocations#" item="local.location" index="local.i" {
 			local.models = directoryList(path:local.location,recurse:true,listinfo:"path",filter:"*.cfc");
 			loop array="#local.models#" item="local.model" {
-				local.componentPath = getDirectoryFromPath(local.model).replace( local.location, local.i & "/", 'all').replace("/",".","all");
-				local.component = local.componentPath & (local.componentPath.right(1)=="."?"":".") & getFileFromPath(local.model).replace('.cfc','');
+				if (isnull(arguments.moduleNamespace)) {
+					local.componentPath = getDirectoryFromPath(local.model).replace( local.location, local.i & "/", 'all').replace("/",".","all");
+					local.component = local.componentPath & (local.componentPath.right(1)=="."?"":".") & getFileFromPath(local.model).replace('.cfc','');
+				}
+				else {
+					local.componentPath = getDirectoryFromPath(local.model).replace( local.location, local.i, 'all').replace("/",".","all");
+					local.component = arguments.moduleNamespace & "." & local.componentPath & (local.componentPath.right(1)=="."?"":".") & getFileFromPath(local.model).replace('.cfc','');
+				}
+
 				try {
 					local.obj = createobject("component",local.component);
 				}
@@ -32,8 +39,12 @@ component hint="Scans model locations and binds ActiveEntity objects by name" si
 
 					local.extends = local.extends.extends?:"";
 				}
+
 				if (local.isEntity){
 					local.entityname = local.metadata.entityname ?: local.metadata.name.listlast(".");
+					if (!isnull(arguments.moduleNamespace))
+						local.entityname = local.entityname & "@" & arguments.moduleNamespace;
+					
 					if (entities.keyexists(local.entityname)){
 						throw(message:"ActiveEntity Name Collision",extendedinfo:"ActiveEntity named #local.entityname# already exists (#entities[local.entityname]# - conflicts with #local.metadata.name#)!");
 					}

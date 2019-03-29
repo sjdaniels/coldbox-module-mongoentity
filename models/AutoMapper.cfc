@@ -41,10 +41,7 @@ component hint="Scans model locations and binds ActiveEntity objects by name" si
 				}
 
 				if (local.isEntity){
-					local.entityname = local.metadata.entityname ?: local.metadata.name.listlast(".");
-					if (!isnull(arguments.moduleNamespace))
-						local.entityname = local.entityname & "@" & arguments.moduleNamespace;
-					
+					local.entityname = local.metadata.entityname ?: local.metadata.name.listlast(".");					
 					if (entities.keyexists(local.entityname)){
 						throw(message:"ActiveEntity Name Collision",extendedinfo:"ActiveEntity named #local.entityname# already exists (#entities[local.entityname]# - conflicts with #local.metadata.name#)!");
 					}

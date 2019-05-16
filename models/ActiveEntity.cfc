@@ -261,6 +261,17 @@ component output="false" accessors="true"  {
 		return local.result;
 	}
 
+	public any function listAsArray(struct criteria={}, string sortorder="", numeric offset=0, numeric max=0, numeric limit=0, boolean withRowCount=false) {
+		arguments.asQuery = false;
+		return list(argumentCollection = arguments);
+	}	
+
+	public any function listAsIterator(struct criteria={}, string sortorder="", numeric offset=0, numeric max=0, numeric limit=0, boolean withRowCount=false) {
+		arguments.asQuery = false;
+		arguments.iterator = true;
+		return list(argumentCollection = arguments);
+	}	
+
 	public function getIterator(required ActiveEntity entity, required any cursor) {
 		return new Iterator( arguments.entity, arguments.cursor );
 	}

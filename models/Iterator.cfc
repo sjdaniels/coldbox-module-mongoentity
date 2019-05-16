@@ -40,6 +40,19 @@ component {
 		return variables.cursor.count();
 	}
 
+	public void function setBatchSize(required numeric batchSize) {
+		variables.cursor.batchSize(arguments.batchSize);
+		return;
+	}
+
+	public numeric function getBatchSize() {
+		return variables.cursor.getBatchSize();
+	}
+
+	public any function getCursor() {
+		return variables.cursor;
+	}
+
 	public any function size() {		
 		try {
 			return variables.cursor.size();

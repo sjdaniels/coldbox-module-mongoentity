@@ -217,7 +217,7 @@ component output="false" accessors="true"  {
 		return;
 	}
 
-	public any function list(struct criteria={}, string sortorder="", numeric offset=0, numeric max=0, boolean asQuery=true, numeric limit=0, boolean withRowCount=true, boolean iterator=false) {
+	public any function list(struct criteria={}, string sortorder="", numeric offset=0, numeric max=0, boolean asQuery=true, numeric limit=0, boolean withRowCount=true, boolean iterator=false, boolean textsort=false) {
 
 		if (arguments.max) arguments.limit = arguments.max;
 
@@ -225,9 +225,15 @@ component output="false" accessors="true"  {
 		if (!isempty(arguments.sortorder))
 			local.sort = getMongoHelpers().sortFormat( arguments.sortorder );
 
+		local.projection = {};
+		if (arguments.textsort) {
+			local.projection = ["score":{"$meta":"textScore"}]
+			local.sort = local.projection;
+		}
+
 		getTimer().start("#getEntityName()#.list( #serializeJSON(arguments.criteria)# ).sort( #serializeJSON(local.sort?:{})# )")
 			local.cursor = getCollection()
-				.find(arguments.criteria);
+				.find(arguments.criteria, local.projection);
 
 			if (!isnull(local.sort))
 				local.cursor.sort(local.sort);

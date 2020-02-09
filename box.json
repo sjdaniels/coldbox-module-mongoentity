@@ -29,6 +29,6 @@
     ],
     "dependencies":{
         "cbdebugger":"stable",
-        "cbvalidation":"stable"
+        "cbvalidation":"^1.0.0"
     }
 }

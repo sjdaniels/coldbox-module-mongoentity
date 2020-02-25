@@ -305,11 +305,11 @@ component output="false" accessors="true"  {
 
 	public array function aggregate() {
 		var otherPipelines = [];
-		arguments.each(function(arg,i){
-			otherPipelines.append( arg )
-		})
+		loop array="#arguments#" item="local.arg" index="local.i" {
+			otherPipelines.append( local.arg );
+		}
 		getTimer().start("#getEntityName()#.aggregate()")
-			var result = getCollection().aggregate(otherPipelines).results()
+			var result = getCollection().aggregate(otherPipelines).results();
 		getTimer().stop("#getEntityName()#.aggregate()")
  
 		return result;

@@ -15,7 +15,7 @@ component accessors="true" implements="cbvalidation.models.validators.IValidator
 	* @targetValue.hint The target value to validate
 	* @validationData.hint The validation data the validator was created with
 	*/
-	boolean function validate(required cbvalidation.models.result.IValidationResult validationResult, required any target, required string field, any targetValue, any validationData){
+	boolean function validate(required any validationResult, required any target, required string field, any targetValue, any validationData, struct rules){
 
 		// Only validate simple values and if they have length, else ignore.
 		if( isSimpleValue( arguments.targetValue ) AND len( trim( arguments.targetValue ) ) ){

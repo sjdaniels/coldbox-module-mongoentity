@@ -303,14 +303,25 @@ component output="false" accessors="true"  {
 		return result;
 	}
 
-	public array function aggregate() {
-		var otherPipelines = [];
-		loop array="#arguments#" item="local.arg" index="local.i" {
-			otherPipelines.append( local.arg );
+	public any function aggregate() {
+		var pipeline = [];
+		if (isArray(arguments[1])) {
+			pipeline = arguments[1];
+			getTimer().start("#getEntityName()#.aggregate()")
+				if (!isnull(arguments[2])) 
+					var result = getCollection().aggregate(pipeline,arguments[2]);
+				else 
+					var result = getCollection().aggregate(pipeline).results();
+			getTimer().stop("#getEntityName()#.aggregate()")
 		}
-		getTimer().start("#getEntityName()#.aggregate()")
-			var result = getCollection().aggregate(otherPipelines).results();
-		getTimer().stop("#getEntityName()#.aggregate()")
+		else {
+			loop array="#arguments#" item="local.arg" index="local.i" {
+				pipeline.append( local.arg );
+			}
+			getTimer().start("#getEntityName()#.aggregate()")
+				var result = getCollection().aggregate(pipeline).results();
+			getTimer().stop("#getEntityName()#.aggregate()")
+		}
  
 		return result;
 	}

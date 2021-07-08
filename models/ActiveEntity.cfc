@@ -161,9 +161,9 @@ component output="false" accessors="true"  {
 
 		// check if id exists so entityLoad does not throw error
 		if( (isSimpleValue(arguments.id) and len(arguments.id)) OR NOT isSimpleValue(arguments.id) ){
-			getTimer().start("#getEntityName()#.get( #serializeJSON(arguments.id)# )")
+			getTimer().start("#getEntityName()#.get( #arguments.id.toString()# )")
 				var getDoc = getCollection().findOne({"_id":_mongoID(arguments.id)});
-			getTimer().stop("#getEntityName()#.get( #serializeJSON(arguments.id)# )")
+			getTimer().stop("#getEntityName()#.get( #arguments.id.toString()# )")
 
 			// Check if not null, then return it
 			if( !isnull(getDoc) ){
@@ -203,9 +203,9 @@ component output="false" accessors="true"  {
 		if (!isempty(arguments.sortorder))
 			local.sort = getMongoHelpers().sortFormat( arguments.sortorder );
 
-		getTimer().start("#getEntityName()#.findOne( #left(serializeJSON(arguments.criteria),100)# )")
+		getTimer().start("#getEntityName()#.findOne( #left(arguments.criteria.toString(),100)# )")
 			var doc = getCollection().findOne(arguments.criteria,{},local.sort);
-		getTimer().stop("#getEntityName()#.findOne( #left(serializeJSON(arguments.criteria),100)# )")
+		getTimer().stop("#getEntityName()#.findOne( #left(arguments.criteria.toString(),100)# )")
 
 		if (!isnull(doc)) {
 			populateFromDoc(result, doc);
@@ -231,7 +231,7 @@ component output="false" accessors="true"  {
 			local.sort = local.projection;
 		}
 
-		getTimer().start("#getEntityName()#.list( #serializeJSON(arguments.criteria)# ).sort( #serializeJSON(local.sort?:{})# )")
+		getTimer().start("#getEntityName()#.list( #arguments.criteria.toString()# ).sort( #(local.sort?:{}).toString()# )");
 			local.cursor = getCollection()
 				.find(arguments.criteria, local.projection);
 
@@ -241,7 +241,7 @@ component output="false" accessors="true"  {
 			local.cursor
 				.skip(arguments.offset) 
 				.limit(arguments.limit); 
-		getTimer().stop("#getEntityName()#.list( #serializeJSON(arguments.criteria)# ).sort( #serializeJSON(local.sort?:{})# )")
+		getTimer().stop("#getEntityName()#.list( #arguments.criteria.toString()# ).sort( #(local.sort?:{}).toString()# )");
 		
 		if (arguments.withRowCount){
 			getTimer().start("-- get cursor count")
@@ -284,7 +284,7 @@ component output="false" accessors="true"  {
 
 	public array function random(struct criteria={}, numeric max=3) {
 		local.result = []
-		getTimer().start("#getEntityName()#.random( #serializeJSON(arguments.criteria)# )")
+		getTimer().start("#getEntityName()#.random( #arguments.criteria.toString()# )")
 			local.cursor = getCollection().aggregate({"$match":arguments.criteria}, {"$sample":{"size":arguments.max}}); 
 			local.samples = local.cursor.results()
 			for (local.sample in local.samples) {
@@ -292,14 +292,14 @@ component output="false" accessors="true"  {
 				this.populateFromDoc(local.entity, local.sample)
 				local.result.append( local.entity );
 			}
-		getTimer().stop("#getEntityName()#.random( #serializeJSON(arguments.criteria)# )")
+		getTimer().stop("#getEntityName()#.random( #arguments.criteria.toString()# )")
 		return local.result;
 	}
 
 	public numeric function count(struct criteria={}) {
-		getTimer().start("#getEntityName()#.count( #serializeJSON(arguments.criteria)# )")
+		getTimer().start("#getEntityName()#.count( #arguments.criteria.toString()# )")
 			var result = getCollection().count(arguments.criteria);
-		getTimer().stop("#getEntityName()#.count( #serializeJSON(arguments.criteria)# )")
+		getTimer().stop("#getEntityName()#.count( #arguments.criteria.toString()# )")
 		return result;
 	}
 

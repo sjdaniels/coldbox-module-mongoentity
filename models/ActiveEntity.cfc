@@ -507,6 +507,9 @@ component output="false" accessors="true"  {
 			options["name"] = index.name;
 			options["unique"] = index.unique ?: false;
 
+			if (index.keyExists("weights"))
+				options["weights"] = index.weights;
+
 			if (!isnull(index.partialFilterExpression))
 				options["partialFilterExpression"] = index.partialFilterExpression;
 			else 

@@ -539,7 +539,7 @@ component output="false" accessors="true"  {
 	}
 
 	public date function getDateFromID(){
-		local.result = MongoDBID( this.getID() ).getDate()
+		local.result = _mongoID( this.getID() ).getDate()
 		return local.result;
 	}    
 	

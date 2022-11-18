@@ -522,8 +522,8 @@ component output="false" accessors="true"  {
 			getTimer().start(local.timer);
 				try {
 					collection.createIndex( fields.get(), options )
-					if (logbox.canInfo())
-						logbox.info("mongoentity: ensured index #getCollectionName()#.#index.name#");
+					if (logbox.canDebug())
+						logbox.debug("mongoentity: ensured index #getCollectionName()#.#index.name#");
 				} catch (Any local.e) {
 					try {
 						collection.dropIndex( index.name );

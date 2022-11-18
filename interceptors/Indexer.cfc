@@ -9,8 +9,8 @@ component output="false" extends="coldbox.system.Interceptor"  {
 		for (var entityname in getSetting("mongoentities")) {
 			local.tick = getTickCount();
 			getInstance(entityName).ensureIndexes();
-			if (log.canInfo())
-				log.info("Ensured indexes on #entityName# - #getTickCount()-local.tick#ms");
+			if (log.canDebug())
+				log.debug("Ensured indexes on #entityName# - #getTickCount()-local.tick#ms");
 		}
 	}
 }

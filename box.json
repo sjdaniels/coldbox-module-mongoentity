@@ -1,6 +1,6 @@
 {
     "name":"MongoDB ActiveEntity Suite",
-    "version":"1.0.0+0002",
+    "version":"1.0.0+0003",
     "author":"Sean Daniels <sdaniels@padawan.net>",
     "homepage":"https://github.com/sjdaniels/coldbox-module-mongoentity",
     "documentation":"https://github.com/sjdaniels/coldbox-module-mongoentity/blob/master/README.md",

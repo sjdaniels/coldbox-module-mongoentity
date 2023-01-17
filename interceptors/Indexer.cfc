@@ -1,7 +1,6 @@
 component output="false" extends="coldbox.system.Interceptor"  {
 
 	public function configure(){
-		variables.indexEnsured = [];
 		return this;
 	}
 	
@@ -10,11 +9,6 @@ component output="false" extends="coldbox.system.Interceptor"  {
 			return;
 		}
 		
-		for (var entityname in getSetting("mongoentities")) {
-			local.tick = getTickCount();
-			getInstance(entityName).ensureIndexes();
-			if (log.canDebug())
-				log.debug("Ensured indexes on #entityName# - #getTickCount()-local.tick#ms");
-		}
+		runEvent("mongoentity:Main.ensureindexes");
 	}
 }

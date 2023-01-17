@@ -13,6 +13,11 @@ component {
 		interceptors = [
 			{ class="#moduleMapping#.interceptors.Indexer", name="indexer@#this.modelNamespace#" }
 		];
+
+		// module settings - stored in modules.name.settings
+		settings = {
+			 ensureIndexesOnInit:true
+		};
 	}
 
 	function onLoad(){

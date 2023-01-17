@@ -6,6 +6,10 @@ component output="false" extends="coldbox.system.Interceptor"  {
 	}
 	
 	public void function afterConfigurationLoad(event,interceptData){
+		if (!getModuleSettings("mongoentity").get("ensureIndexesOnInit")) {
+			return;
+		}
+		
 		for (var entityname in getSetting("mongoentities")) {
 			local.tick = getTickCount();
 			getInstance(entityName).ensureIndexes();

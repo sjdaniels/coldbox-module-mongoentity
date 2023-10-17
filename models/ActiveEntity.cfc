@@ -426,8 +426,6 @@ component output="false" accessors="true"  {
 			break;
 
 			case "set":
-
-
 				if (not structkeyexists(targetProperty,"mongorel")) {
 					// convert empty strings to nulls
 					if (!isnull(arguments.missingMethodArguments[1]) && isSimpleValue(arguments.missingMethodArguments[1]) && !len(trim(arguments.missingMethodArguments[1])))
@@ -445,7 +443,7 @@ component output="false" accessors="true"  {
 						} else if (targetProperty.type=="boolean") {
 							variables[target] = javacast("boolean",trim(arguments.missingMethodArguments[1]));
 						} else {
-							variables[target] = getmetaData(arguments.missingMethodArguments[1]).getname() == "java.lang.String" ? trim(arguments.missingMethodArguments[1]) : arguments.missingMethodArguments[1];
+							variables[target] = getmetaData(arguments.missingMethodArguments[1]).class.toString() == "java.lang.String" ? trim(arguments.missingMethodArguments[1]) : arguments.missingMethodArguments[1];
 						}
 					}
 				} else if ( targetProperty.mongorel == "linked" ) {

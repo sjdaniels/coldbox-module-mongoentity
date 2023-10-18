@@ -589,10 +589,7 @@ component output="false" accessors="true"  {
 	}
 
 	public array function cursorToArrayOfObjects(required any cursor) {
-		var result = [];
-		if (!arguments.cursor.size())
-			return result;
-			
+		var result = [];			
 		var entity = "";
 		var doc    = "";
 		while (arguments.cursor.hasNext()) {

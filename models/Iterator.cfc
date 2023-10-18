@@ -13,6 +13,11 @@ component {
 		return variables.entity;
 	}
 
+	public array function toArray() {
+		var result = variables.entity.cursorToArrayOfObjects(variables.cursor);
+		return result;
+	}
+
 	public boolean function hasNext() {
 		return variables.cursor.hasNext();
 	}

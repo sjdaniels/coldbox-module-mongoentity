@@ -24,9 +24,6 @@ component {
 		var mapper = wirebox.getInstance("#moduleMapping#.models.AutoMapper");
 		var mapped = mapper.mapEntities( wirebox.getBinder().getScanLocations() );
 		controller.setSetting("mongoentities", mapped);
-
-		// override renderer so we can use our Iterator with renderView(collection=Iterator)
-		wirebox.getBinder().map("renderer@coldbox").to("#moduleMapping#.extensions.Renderer");
 	}
 
 	function onUnload(){

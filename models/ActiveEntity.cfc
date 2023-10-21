@@ -443,7 +443,7 @@ component output="false" accessors="true"  {
 						} else if (targetProperty.type=="boolean") {
 							variables[target] = javacast("boolean",trim(arguments.missingMethodArguments[1]));
 						} else {
-							variables[target] = getmetaData(arguments.missingMethodArguments[1]).class.toString() == "java.lang.String" ? trim(arguments.missingMethodArguments[1]) : arguments.missingMethodArguments[1];
+							variables[target] = isSimpleValue(arguments.missingMethodArguments[1]) ? trim(arguments.missingMethodArguments[1]) : arguments.missingMethodArguments[1];
 						}
 					}
 				} else if ( targetProperty.mongorel == "linked" ) {

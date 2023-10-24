@@ -442,6 +442,8 @@ component output="false" accessors="true"  {
 							variables[target] = javacast("numeric",trim(arguments.missingMethodArguments[1]));
 						} else if (targetProperty.type=="boolean") {
 							variables[target] = javacast("boolean",trim(arguments.missingMethodArguments[1]));
+						} else if (isStruct(arguments.missingMethodArguments[1]) || isArray(arguments.missingMethodArguments[1])) {
+							variables[target] = arguments.missingMethodArguments[1];
 						} else {
 							variables[target] = getmetaData(arguments.missingMethodArguments[1]).getname() == "java.lang.String" ? trim(arguments.missingMethodArguments[1]) : arguments.missingMethodArguments[1];
 						}

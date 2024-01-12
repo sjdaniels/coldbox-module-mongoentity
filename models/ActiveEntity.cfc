@@ -5,6 +5,7 @@
 *
 */
 component output="false" accessors="true"  {
+	processingdirective preserveCase=true;
 
 	property metadata name="entityName" type="string" persist="false";
 	property metadata name="databaseName" type="string" persist="false" default="";
@@ -323,6 +324,24 @@ component output="false" accessors="true"  {
 			getTimer().stop("#getEntityName()#.aggregate()")
 		}
  
+		return result;
+	}
+
+	public array function aggregateToArray(required array pipeline, numeric limit, numeric offset) {
+		var result = [];
+		var pipe = duplicate(arguments.pipeline);
+		var countpipe = duplicate(arguments.pipeline).append({ $count:"total" });
+
+
+		if (!isnull(arguments.offset))
+			pipe.append({ $skip:arguments.offset });
+		if (!isnull(arguments.limit))
+			pipe.append({ $limit:arguments.limit });
+		
+		var agg = getCollection().aggregate(pipe,{});
+
+		result = cursorToArrayOfObjects(agg);
+		request.aggregation_count = getCollection().aggregate(countpipe).results().toStruct().get(1,{total:0}).total;
 		return result;
 	}
 
@@ -741,6 +760,12 @@ component output="false" accessors="true"  {
 					variables["#target#_entity"] = targetProperty.keyExists("cfc") ? _entityNew(componentPath:targetProperty.cfc) : _entityNew(targetProperty.mongoentity);
 
 				local.entity = variables["#target#_entity"].reset();
+
+				// _expanded is a special key indicating the linked object has been pre-fetched by $lookup in aggregations
+				if (variables.keyExists("#target#_expanded")) {
+					populateFromDoc( local.entity, variables["#target#_expanded"] );
+					return local.entity;
+				}
 
 				// if property is null, return an empty object
 				if (!structkeyexists(variables,target)) return local.entity;

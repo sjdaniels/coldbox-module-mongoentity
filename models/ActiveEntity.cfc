@@ -451,8 +451,13 @@ component output="false" accessors="true"  {
 						arguments.missingMethodArguments[1] = nullValue()
 
 					// convert empty arrays & structs to nulls
-					if (!isnull(arguments.missingMethodArguments[1]) && (isArray(arguments.missingMethodArguments[1]) || isStruct(arguments.missingMethodArguments[1])) && !arguments.missingMethodArguments[1].len())
-						arguments.missingMethodArguments[1] = nullValue()
+					try {
+						if (!isnull(arguments.missingMethodArguments[1]) && (isArray(arguments.missingMethodArguments[1]) || isStruct(arguments.missingMethodArguments[1])) && !arguments.missingMethodArguments[1].len())
+							arguments.missingMethodArguments[1] = nullValue()
+					} catch (any local.e) {
+						rethrow;
+						dump(var=arguments, top=4, abort=true);
+					}
 
 					if (isnull(arguments.missingMethodArguments[1])) {
 						variables[target] = nullValue();
@@ -490,7 +495,7 @@ component output="false" accessors="true"  {
 										collection=getCollection(), // allows us to create indexes on a temp version of the collection
 										boolean background=true 
 									){
-		var fields = getMongoHelpers().MongoDBObjectBuilder()
+		var fields = [:]
 		var options = {}
 		var logbox = getLogBox().getLogger(this);
 
@@ -508,16 +513,16 @@ component output="false" accessors="true"  {
 		}
 
 		for (var index in getCollectionIndexes()) {
-			fields = getMongoHelpers().MongoDBObjectBuilder()
+			fields = [:]
 			options = {}
 
 			index.fields.each(function(field){
 				if (isSimpleValue(field)){
-					fields.add("#field#",1)
+					fields.append({"#field#":1})
 				}
 				else {
 					for (local.key in field) {
-						fields.add("#local.key#",field[local.key])
+						fields.append({"#local.key#":field[local.key]})
 					}
 				}
 			});
@@ -540,13 +545,13 @@ component output="false" accessors="true"  {
 			local.timer = "&nbsp;&nbsp;&nbsp;&nbsp;...index #getCollectionName()#.#index.name#" & (options.background ? " (background)" : "");
 			getTimer().start(local.timer);
 				try {
-					collection.createIndex( fields.get(), options )
+					collection.createIndex( fields, options )
 					if (logbox.canDebug())
 						logbox.debug("mongoentity: ensured index #getCollectionName()#.#index.name#");
 				} catch (Any local.e) {
 					try {
 						collection.dropIndex( index.name );
-						collection.createIndex( fields.get(), options );
+						collection.createIndex( fields, options );
 						if (logbox.canWarn())
 							logbox.warn("mongoentity: dropped and rebuilt index #getCollectionName()#.#index.name#");
 					} catch (any local.ee) {

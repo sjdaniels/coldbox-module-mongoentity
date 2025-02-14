@@ -1,18 +1,14 @@
 component output="false" singleton {
 
-	function init() {
-		variables.builder = createobject("java","com.mongodb.BasicDBObjectBuilder");
-	}
-
 	function MongoDBObject(){
-		var DBObject = MongoDBObjectBuilder();
+		var DBObject = [:];
 		var key = "";
 
 		for (key in arguments) {
-			DBObject.append( key, arguments[key] )
+			DBObject.append( { "#key#" : arguments[key] } );
 		}
 
-		return DBObject.get();
+		return DBObject;
 	}
 
 	function toCF(any key required) {
@@ -32,11 +28,6 @@ component output="false" singleton {
 		}
 
 		return result;
-	}
-
-	function MongoDBObjectBuilder(){
-
-		return builder.start()
 	}
 
 	function MongoDayCriteria(required date theDate, boolean asObjectIDs=false, numeric tzoffset){
@@ -59,16 +50,15 @@ component output="false" singleton {
 		if (!isSimpleValue(arguments.sortorder))
 			return arguments.sortorder;
 
-		local.result = MongoDBObjectBuilder()
+		local.result = [:];
 		if (len(trim(arguments.sortorder))) {
 			for (local.sorttoken in listtoarray(arguments.sortorder)) {
 				local.sortcol = getToken(local.sorttoken,1," ");
 				local.sortdir = findnocase("desc",local.sorttoken) ? -1 : 1;
-				local.result.add(local.sortcol,local.sortdir);
+				local.result.append({"#local.sortcol#":local.sortdir});
 			}
 		}
-	
-		return local.result.get();
+		return local.result;
 	}
 
 	numeric function getDistanceBetweenGeoPoints(required array point1, required array point2) {

@@ -10,11 +10,11 @@ component hint="Scans model locations and binds ActiveEntity objects by name" si
 			local.models = directoryList(path:local.location,recurse:true,listinfo:"path",filter:"*.cfc");
 			loop array="#local.models#" item="local.model" {
 				if (isnull(arguments.moduleNamespace)) {
-					local.componentPath = getDirectoryFromPath(local.model).replace( local.location, local.i & "/", 'all').replace("/",".","all");
+					local.componentPath = getDirectoryFromPath(local.model).replace( local.location, local.i & "/", 'all').replace(server.separator.file,".","all");
 					local.component = local.componentPath & (local.componentPath.right(1)=="."?"":".") & getFileFromPath(local.model).replace('.cfc','');
 				}
 				else {
-					local.componentPath = getDirectoryFromPath(local.model).replace( local.location, local.i, 'all').replace("/",".","all");
+					local.componentPath = getDirectoryFromPath(local.model).replace( local.location, local.i, 'all').replace(server.separator.file,".","all");
 					local.component = arguments.moduleNamespace & "." & local.componentPath & (local.componentPath.right(1)=="."?"":".") & getFileFromPath(local.model).replace('.cfc','');
 				}
 

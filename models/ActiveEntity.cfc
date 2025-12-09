@@ -148,10 +148,10 @@ component output="false" accessors="true"  {
 		var key      = "";
 		var excludes = "entityName,properties";
 
+
 		// Properties exists?
-		if( NOT structIsEmpty(arguments.properties) ){
-			getWirebox().getObjectPopulator().populateFromStruct( entity, arguments.properties );
-		}
+		if( !structIsEmpty(arguments.properties) )
+			entity.populate( arguments.properties );
 
 		return entity;
 	}

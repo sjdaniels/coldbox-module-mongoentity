@@ -163,13 +163,13 @@ component output="false" accessors="true"  {
 		// check if id exists so entityLoad does not throw error
 		if( (isSimpleValue(arguments.id) and len(arguments.id)) OR NOT isSimpleValue(arguments.id) ){
 			getTimer().start("#getEntityName()#.get( #serializeJSON(arguments.id)# )")
-				var getDoc = getCollection().findOne({"_id":_mongoID(arguments.id)});
+				local.getDoc = getCollection().findOne({"_id":_mongoID(arguments.id)});
 			getTimer().stop("#getEntityName()#.get( #serializeJSON(arguments.id)# )")
 
 			// Check if not null, then return it
-			if( !isnull(getDoc) ){
-				var doc = getDoc;
-				populateFromDoc(result,doc);
+			if( !isnull(local.getDoc) ){
+				local.doc = local.getDoc;
+				populateFromDoc(result,local.doc);
 				return result;
 			}
 		}
@@ -205,11 +205,11 @@ component output="false" accessors="true"  {
 			local.sort = getMongoHelpers().sortFormat( arguments.sortorder );
 
 		getTimer().start("#getEntityName()#.findOne( #left(serializeJSON(arguments.criteria),100)# )")
-			var doc = getCollection().findOne(arguments.criteria,{},local.sort);
+			local.doc = getCollection().findOne(arguments.criteria,{},local.sort);
 		getTimer().stop("#getEntityName()#.findOne( #left(serializeJSON(arguments.criteria),100)# )")
 
-		if (!isnull(doc)) {
-			populateFromDoc(result, doc);
+		if (!isnull(local.doc)) {
+			populateFromDoc(result, local.doc);
 			return result;
 		}
 

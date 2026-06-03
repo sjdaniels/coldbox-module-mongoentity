@@ -490,7 +490,6 @@ component output="false" accessors="true"  {
 	}
 
 	public void function ensureIndexes(
-										boolean dropDups, 
 										boolean forceReindex, 
 										collection=getCollection(), // allows us to create indexes on a temp version of the collection
 										boolean background=true 
@@ -538,9 +537,6 @@ component output="false" accessors="true"  {
 				options["partialFilterExpression"] = index.partialFilterExpression;
 			else 
 				options["sparse"] = index.sparse ?: false;
-
-			if (!isnull(arguments.dropDups))
-				options["dropDups"] = arguments.dropDups;
 
 			local.timer = "&nbsp;&nbsp;&nbsp;&nbsp;...index #getCollectionName()#.#index.name#" & (options.background ? " (background)" : "");
 			getTimer().start(local.timer);

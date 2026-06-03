@@ -919,15 +919,21 @@ component output="false" accessors="true"  {
 	}
 
 	private array function getInheritedProperties(required struct metadata) {
-		if (isnull(variables.inheritedproperties)) {
-			var inheritedproperties = [];
-			var prop = {};
+		var cacheKey = "activeentity_meta_#arguments.metadata.name#";
+		
+		if ( structKeyExists(application, cacheKey) )
+			return application[cacheKey];
 
+		lock name="activeentity_meta_#arguments.metadata.name#" type="exclusive" timeout="10" {
+			if ( structKeyExists(application, cacheKey) )
+				return application[cacheKey];
+
+			var inheritedproperties = [];
 			local.extends = true;
-			local.comMD = metadata;
+			local.comMD = arguments.metadata;
 			
 			while (local.extends) {
-				for (prop in (local.comMD.properties?:[])) {
+				for (var prop in (local.comMD.properties?:[])) {
 					inheritedproperties.append( prop );
 				}
 				if (local.comMD.keyExists("extends"))
@@ -936,12 +942,11 @@ component output="false" accessors="true"  {
 					break;
 			}
 
-			variables.inheritedproperties = inheritedproperties;
+			application[cacheKey] = inheritedproperties;
 		}
-	
-		return variables.inheritedproperties;
+		
+		return application[cacheKey];
 	}
-
 	/* ----------------------------------------------- EVENT HANDLERS --------------------------------------------- */    
 
 	private any function preSave(){

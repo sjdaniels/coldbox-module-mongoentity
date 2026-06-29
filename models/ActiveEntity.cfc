@@ -12,6 +12,7 @@ component output="false" accessors="true"  {
 	property metadata name="collectionName" type="string" persist="false";
 	property metadata name="collectionIndexes" type="array" persist="false";
 	property metadata name="entityProperties" type="struct" persist="false";
+	property persist="false" inject="cachebox:default" name="metaCache";
 
 	function getLogBox() provider="logbox" {}
 	function getWireBox() provider="wirebox" {}
@@ -19,7 +20,14 @@ component output="false" accessors="true"  {
 	function getMongoHelpers() provider="Utils@mongoentity" {}
 	function getTimer() provider="timer@cbdebugger" {}
 
-	public ActiveEntity function init(){
+	public ActiveEntity function init( any metaCache inject="cachebox:default" ){
+		// WireBox resolves this arg before calling init(), so the cache is available
+		// immediately. When a subclass overrides init() and calls super.init() without
+		// the arg (its own init() has no inject annotation), metaCache is null here and
+		// we fall back to computing without cache for that construction.
+		if (!isNull(arguments.metaCache))
+			variables.metaCache = arguments.metaCache;
+
 		var md = getMetadata( this );
 
 		// find entity name on md?
@@ -59,12 +67,14 @@ component output="false" accessors="true"  {
 				arrayappend( local.collectionIndexes, local.index );
 			}
 		}
-		
+
 		setEntityProperties(local.entityProperties);
 		setCollectionIndexes(local.collectionIndexes);
 
 		// clear properties and reset to default values
-		return reset();
+		reset();
+
+		return this;
 	}
 
 	public ActiveEntity function reset() {
@@ -920,32 +930,31 @@ component output="false" accessors="true"  {
 
 	private array function getInheritedProperties(required struct metadata) {
 		var cacheKey = "activeentity_meta_#arguments.metadata.name#";
-		
-		if ( structKeyExists(application, cacheKey) )
-			return application[cacheKey];
+		var hasCache = structKeyExists(variables, "metaCache");
 
-		lock name="activeentity_meta_#arguments.metadata.name#" type="exclusive" timeout="10" {
-			if ( structKeyExists(application, cacheKey) )
-				return application[cacheKey];
-
-			var inheritedproperties = [];
-			local.extends = true;
-			local.comMD = arguments.metadata;
-			
-			while (local.extends) {
-				for (var prop in (local.comMD.properties?:[])) {
-					inheritedproperties.append( prop );
-				}
-				if (local.comMD.keyExists("extends"))
-					local.comMD = local.comMD.extends;
-				else 
-					break;
-			}
-
-			application[cacheKey] = inheritedproperties;
+		if (hasCache) {
+			var cached = variables.metaCache.get(cacheKey);
+			if (!isNull(cached)) return cached;
 		}
-		
-		return application[cacheKey];
+
+		var inheritedproperties = [];
+		local.extends = true;
+		local.comMD = arguments.metadata;
+
+		while (local.extends) {
+			for (var prop in (local.comMD.properties?:[])) {
+				inheritedproperties.append( prop );
+			}
+			if (local.comMD.keyExists("extends"))
+				local.comMD = local.comMD.extends;
+			else
+				break;
+		}
+
+		if (hasCache)
+			variables.metaCache.set(cacheKey, inheritedproperties);
+
+		return inheritedproperties;
 	}
 	/* ----------------------------------------------- EVENT HANDLERS --------------------------------------------- */    
 

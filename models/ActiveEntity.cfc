@@ -943,7 +943,14 @@ component output="false" accessors="true"  {
 
 		while (local.extends) {
 			for (var prop in (local.comMD.properties?:[])) {
-				inheritedproperties.append( prop );
+				// Only cache primitive values, not the raw metadata struct
+				// which contains Java class references that pin classloaders
+				var cleanProp = {};
+				for (var key in prop) {
+					if (isSimpleValue(prop[key]))
+						cleanProp[key] = prop[key];
+				}
+				inheritedproperties.append( cleanProp );
 			}
 			if (local.comMD.keyExists("extends"))
 				local.comMD = local.comMD.extends;

@@ -180,7 +180,63 @@ component singleton {
 		if (!isnull( arguments.current ))	result[ "current" ]	= describe( arguments.current, arguments.cfg );
 		if (!isnull( arguments.writing ))	result[ "writing" ]	= describe( arguments.writing, arguments.cfg );
 
+		// Exactly what this write destroys, as dotted paths. The serialised blobs above are truncated
+		// and serializeJSON does not guarantee key order, so on an embedded document like profile they
+		// are unreadable - three 1284-character strings that look different where they are identical
+		// and identical where they differ. This is the part you can act on.
+		if (!isnull( arguments.current ) && !isnull( arguments.writing ))
+			result[ "changed" ] = diffPaths( arguments.current, arguments.writing, "", 0 );
+
 		return result;
+	}
+
+	/**
+	 * Dotted paths where two values disagree, current -> writing. Bounded on both depth and count so
+	 * one wide subdocument cannot produce an unreadable finding.
+	 */
+	private array function diffPaths( any a, any b, string prefix="", numeric depth=0 ){
+		var out = [];
+		var at  = arguments.prefix.len() ? arguments.prefix.left( arguments.prefix.len() - 1 ) : "(value)";
+
+		if (arguments.depth >= 6)
+			return [ "#at#: (max depth)" ];
+
+		if (isStruct( arguments.a ) && isStruct( arguments.b )) {
+			for (var key in arguments.a) {
+				if (out.len() >= 20)
+					return out.append( "…more" );
+
+				if (!structKeyExists( arguments.b, key ))
+					out.append( "#arguments.prefix##key#: dropped" );
+				else if (differs( arguments.a[ key ], arguments.b[ key ] ))
+					out.append( diffPaths( arguments.a[ key ], arguments.b[ key ], "#arguments.prefix##key#.", arguments.depth + 1 ), true );
+			}
+
+			for (var key in arguments.b)
+				if (!structKeyExists( arguments.a, key ) && out.len() < 20)
+					out.append( "#arguments.prefix##key#: added by this write" );
+
+			return out;
+		}
+
+		if (isArray( arguments.a ) && isArray( arguments.b ) && arguments.a.len() != arguments.b.len())
+			return [ "#at#: #arguments.a.len()# entries -> #arguments.b.len()# entries" ];
+
+		return [ "#at#: #leaf( arguments.a )# -> #leaf( arguments.b )#" ];
+	}
+
+	/** Short single-line form of a leaf value for the diff paths. */
+	private string function leaf( any value ){
+		try {
+			if (isnull( arguments.value ))
+				return "null";
+
+			var out = isSimpleValue( arguments.value ) ? arguments.value.toString() : serializeJSON( arguments.value );
+			return out.len() > 80 ? out.left( 80 ) & "…" : out;
+		}
+		catch (any e) {
+			return "[unreadable]";
+		}
 	}
 
 	/**
@@ -202,7 +258,10 @@ component singleton {
 			,"docID"		: isSimpleValue( arguments.id ) ? arguments.id : arguments.id.toString()
 			,"fields"		: arguments.findings.map( ( f ) => f.field )
 			,"findings"		: arguments.findings
-			,"path"			: cgi.path_info ?: ""
+			// script_name as well as path_info: on a rewritten front-controller request path_info is
+			// routinely empty, which made the first real finding say path:"" and tell us nothing
+			,"path"			: "#cgi.script_name ?: ''##cgi.path_info ?: ''#"
+			,"method"		: cgi.request_method ?: ""
 			,"query"		: cgi.query_string ?: ""
 			,"stack"		: stack()
 		};

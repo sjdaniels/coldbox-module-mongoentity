@@ -19,6 +19,7 @@ component output="false" accessors="true"  {
 	function getMongoDB() provider="id:MongoDB" {}
 	function getMongoHelpers() provider="Utils@mongoentity" {}
 	function getTimer() provider="timer@cbdebugger" {}
+	function getLostUpdateAudit() provider="LostUpdateAudit@mongoentity" {}
 
 	public ActiveEntity function init( any metaCache inject="cachebox:default" ){
 		// WireBox resolves this arg before calling init(), so the cache is available
@@ -357,14 +358,38 @@ component output="false" accessors="true"  {
 
 	public ActiveEntity function save() {
 		preSave();
-		
+
 		var doc = getMemento( forPersisting:true );
 		var query = { "_id":doc["_id"] };
 
+		auditBeforeWrite( doc );
+
 		getCollection().update( query, doc, true );
-		
+
 		postSave();
 		return this;
+	}
+
+	/**
+	 * Phase 0 lost-update auditing. Observation only - it cannot change what is written and it must
+	 * not be able to fail a write: the snapshot is absent unless auditing is switched on for this
+	 * collection, and the auditor swallows its own errors. See models/LostUpdateAudit.cfc.
+	 */
+	private void function auditBeforeWrite( required struct doc ) {
+		if (isnull( variables._auditSnapshot ))
+			return;
+
+		try {
+			getLostUpdateAudit().inspect(
+				 collection	: getCollectionName()
+				,doc		: arguments.doc
+				,snapshot	: variables._auditSnapshot
+				,entity		: getEntityName() ?: ""
+			);
+		}
+		catch (any e) {
+			try { writelog( file:"mongoentity", text:"auditBeforeWrite failed: #e.message#" ); } catch (any ignored) {}
+		}
 	}
 
 	public numeric function deleteAll() {
@@ -721,6 +746,28 @@ component output="false" accessors="true"  {
 		for (local.key in docNoNulls) {
 			local.properties[local.key] = docNoNulls[local.key]
 		}
+
+		// Phase 0 lost-update auditing: keep the document exactly as loaded, so save() can tell an
+		// intentional write apart from a silent revert of another request's change.
+		//
+		// The gate is a bare application-scope lookup on purpose. This is the single hydration funnel
+		// for every entity in the app - all nine call sites route through here, once per document of
+		// every list - so anything DI-shaped would be paid per hydrated document. The key exists only
+		// while auditing is on, and its value is the sample rate for that collection.
+		//
+		// duplicate() and not a reference: callers mutate these structures in place (e.g.
+		// MemberService.updateStripeSubscription does entitlements[product] = ... on the struct it
+		// got from getEntitlements()), which would drag the snapshot along with the change and hide
+		// exactly the lost updates this is here to find.
+		//
+		// _auditSnapshot is not a declared property, so getMemento() never sees it and it can never
+		// be persisted.
+		if (structKeyExists( application, "mongoentity_auditcollections" )) {
+			local.auditRate = application[ "mongoentity_auditcollections" ][ arguments.entity.getCollectionName() ?: "" ] ?: 0;
+			if (local.auditRate >= 1 || (local.auditRate > 0 && rand() <= local.auditRate))
+				local.properties[ "_auditSnapshot" ] = duplicate( docNoNulls );
+		}
+
 		return;
 	}
 

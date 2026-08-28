@@ -762,6 +762,14 @@ component output="false" accessors="true"  {
 		//
 		// _auditSnapshot is not a declared property, so getMemento() never sees it and it can never
 		// be persisted.
+		// Cleared unconditionally first, and this is not belt-and-braces. reset() only deletes DECLARED
+		// properties, and _auditSnapshot deliberately is not one - so on the paths that reuse a single
+		// entity instance (Iterator.next(), load()) the previous document's snapshot survives into the
+		// next one. Below a sample rate of 1 that means an unsampled hydration inherits the last
+		// sampled document's snapshot and save() compares the two, inventing findings on almost every
+		// field. Sitemap generation hits exactly that shape: posts, sampled, read with iterator:true.
+		structDelete( local.properties, "_auditSnapshot" );
+
 		if (structKeyExists( application, "mongoentity_auditcollections" )) {
 			local.auditRate = application[ "mongoentity_auditcollections" ][ arguments.entity.getCollectionName() ?: "" ] ?: 0;
 			if (local.auditRate >= 1 || (local.auditRate > 0 && rand() <= local.auditRate))
